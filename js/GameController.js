@@ -1,4 +1,4 @@
-import { GAME_LEVELS } from './levelsConfig.js';
+import { GAME_LEVELS } from './LevelsConfig.js';
 import { GameState } from './GameState.js';
 import { UIHandler } from './UIHandler.js';
 
