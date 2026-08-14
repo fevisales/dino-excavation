@@ -1,0 +1,239 @@
+/* ==========================================
+   1. RESET E FUNDO DE MADEIRA (100% DA TELA)
+   ========================================== */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    width: 100vw;
+    height: 100vh;
+    overflow: hidden;
+    background-color: #3b2219;
+    /* Papel de parede de madeira que preenche tudo */
+    background-image: url('../assets/images/wood_wallpaper.png'); 
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: 'Arial', sans-serif;
+}
+
+/* ==========================================
+   2. ESTRUTURA E PAINEL LATERAL
+   ========================================== */
+#game-screen {
+    display: flex;
+    flex-direction: row; /* Coloca o painel e o tabuleiro lado a lado */
+    align-items: center;
+    justify-content: center;
+    gap: 30px;
+    width: 95%;
+    max-width: 1100px;
+}
+
+/* Painel de Madeira da Esquerda */
+#info-panel {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    background-color: rgba(92, 64, 51, 0.85);
+    background-image: url('../assets/images/wood_panel_texture.png');
+    padding: 20px;
+    border-radius: 12px;
+    border: 4px solid #3b2219;
+    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+    min-width: 180px;
+}
+
+.panel-card {
+    background: rgba(0, 0, 0, 0.3);
+    padding: 10px;
+    border-radius: 8px;
+    text-align: center;
+    color: #f4e3c1;
+}
+
+.panel-card .label {
+    display: block;
+    font-size: 11px;
+    font-weight: bold;
+    color: #d4b281;
+    margin-bottom: 4px;
+}
+
+.panel-card .value {
+    font-size: 20px;
+    font-weight: bold;
+}
+
+/* ==========================================
+   3. MOLDURA DE MADEIRA E GRADE DA AREIA
+   ========================================== */
+#sandbox-frame {
+    background-color: #8c6239;
+    background-image: url('../assets/images/sandbox_wood_frame.png');
+    background-size: 100% 100%;
+    padding: 20px; /* Borda da moldura de madeira */
+    border-radius: 16px;
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.5);
+}
+
+#grid {
+    display: grid;
+    /* As colunas e linhas agora se adaptam dinamicamente pelo JS via grid-template-columns/rows */
+    gap: 0;
+    background-image: url('../assets/images/sand_texture.svg'); /* Areia contínua do fundo */
+    background-size: cover;
+    box-shadow: inset 0 4px 12px rgba(0, 0, 0, 0.5);
+}
+
+/* ==========================================
+   4. ESTILOS DOS 3 ESTADOS DOS BLOCOS (CÉLULAS)
+   ========================================== */
+.cell {
+    width: 48px;
+    height: 48px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.cell img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    pointer-events: none; /* Impede que o clique na imagem trave o evento de escavação */
+    border-top: 1px dashed rgba(92, 64, 51, 0.5);
+    border-left: 1px dashed rgba(92, 64, 51, 0.5);
+    border-right: none;
+    border-bottom: none;
+}
+
+/* ESTADO 1: BLOCO INTEIRO (AREIA FECHADA COM TRACEJADO INTERNO) */
+.cell.state-covered {
+    background-color: transparent;
+    border-top: 1px dashed rgba(140, 98, 57, 0.3);
+    border-left: 1px dashed rgba(140, 98, 57, 0.3);
+    cursor: pointer;
+}
+
+.cell.state-covered:hover {
+    background-color: rgba(255, 255, 255, 0.15); /* Feedback do cursor */
+}
+
+/* ESTADO 2: BLOCO CAVADO VAZIO (SOMBRA DE BURACO) */
+.cell.state-dug-empty {
+    background-color: rgba(60, 35, 20, 0.35);
+    box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.5);
+    border-top: 1px dashed rgba(140, 98, 57, 0.2);
+    border-left: 1px dashed rgba(140, 98, 57, 0.2);
+    cursor: default;
+}
+
+/* ESTADO 3: BLOCO CAVADO COM OSSO */
+.cell.state-dug-bone {
+    background-color: rgba(60, 35, 20, 0.25);
+    box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4);
+    border-top: 1px dashed rgba(140, 98, 57, 0.2);
+    border-left: 1px dashed rgba(140, 98, 57, 0.2);
+    cursor: default;
+}
+
+.cell.state-dug-bone img {
+    width: 85%;
+    height: 85%;
+    object-fit: contain;
+    pointer-events: none;
+}
+
+/* ==========================================
+   5. ESTILOS DAS MODAIS (START, SUCCESS, RETRY, GAME OVER)
+   ========================================== */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: rgba(0, 0, 0, 0.75);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.modal.hidden {
+    display: none !important;
+}
+
+.modal-content {
+    background-color: #5c4033;
+    background-image: url('../assets/images/wood_panel_texture.png');
+    border: 4px solid #3b2219;
+    border-radius: 16px;
+    padding: 30px;
+    text-align: center;
+    color: #f4e3c1;
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.6);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    min-width: 300px;
+}
+
+.modal-content h2 {
+    font-size: 24px;
+    color: #ffd700;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.modal-content button {
+    background-color: #8c6239;
+    color: #fff;
+    border: 2px solid #f4e3c1;
+    padding: 12px 24px;
+    font-size: 18px;
+    font-weight: bold;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+    transition: background-color 0.2s, transform 0.1s;
+}
+
+.modal-content button:hover {
+    background-color: #a67c52;
+    transform: scale(1.05);
+}
+
+.modal-content button:active {
+    transform: scale(0.98);
+}
+
+/* ==========================================
+   6. RESPONSIVIDADE PARA CELULARES
+   ========================================== */
+@media (max-width: 768px) and (orientation: portrait) {
+    #game-screen {
+        flex-direction: column;
+        gap: 15px;
+    }
+
+    #info-panel {
+        flex-direction: row;
+        width: 100%;
+        justify-content: space-around;
+        padding: 10px;
+    }
+
+    .cell {
+        width: 32px;
+        height: 32px;
+    }
+}

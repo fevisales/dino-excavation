@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Escavação Dino: Mistério dos Ossos</title>
+    <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <main id="game-screen">
+        <aside id="info-panel">
+            <div class="panel-card">
+                <span class="label">FASE</span>
+                <span id="level-display" class="value">1</span>
+            </div>
+            <div class="panel-card">
+                <span class="label">TEMPO</span>
+                <span id="timer-display" class="value">00:45</span>
+            </div>
+            <div class="panel-card">
+                <span class="label">OSSOS</span>
+                <span id="score-display" class="value">0 / 11</span>
+            </div>
+            <div class="panel-card">
+                <span class="label">PINCELADAS</span>
+                <span id="brush-display" class="value">20</span>
+            </div>
+        </aside>
+
+        <section id="sandbox-frame">
+            <div id="grid"></div>
+        </section>
+    </main>
+
+    <script type="module" src="js/main.js"></script>
+    <div id="start-modal" class="modal hidden">
+        <div class="modal-content">
+            <h2 id="start-title">Find the bones!</h2>
+            <img id="dino-preview-img" src="" alt="Dino Skeleton" style="max-width: 200px;" />
+            <button id="start-game-btn">START</button>
+        </div>
+    </div>
+
+    <div id="success-modal" class="modal hidden">
+        <div class="modal-content">
+            <h2>SUCCESS!</h2>
+            <button id="next-level-btn">NEXT LEVEL</button>
+        </div>
+    </div>
+
+    <div id="retry-modal" class="modal hidden">
+        <div class="modal-content">
+            <h2>OOPS! TRY AGAIN!</h2>
+            <button id="retry-btn">RETRY</button>
+        </div>
+    </div>
+
+    <div id="game-over-modal" class="modal hidden">
+        <div class="modal-content">
+            <h2>GAME OVER</h2>
+            <button id="restart-game-btn">RESTART GAME</button>
+        </div>
+    </div>
+</body>
+</html>
