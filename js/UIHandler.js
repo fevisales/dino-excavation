@@ -1,138 +1,189 @@
 // js/UIHandler.js
-import { GAME_CONFIG } from './config.js';
+import { GAME_CONFIG } from './config.js'; // <- Adicionado o ./
 
-// tempo da animação de escavação em ms — precisa bater com o CSS (.cell.digging)
 const DIG_ANIMATION_DURATION = 2500;
 
 export class UIHandler {
     constructor(onCellClickCallback) {
         this.onCellClickCallback = onCellClickCallback;
 
+        this.tutorialModal = document.getElementById('tutorial-modal');
         this.startModal = document.getElementById('start-modal');
         this.successModal = document.getElementById('success-modal');
         this.gameOverModal = document.getElementById('game-over-modal');
         this.retryModal = document.getElementById('retry-modal');
-        
+
         this.dinoPreviewImg = document.getElementById('dino-preview-img');
         this.startTitle = document.getElementById('start-title');
+        this.startReadyBtn = document.getElementById('start-ready-btn');
 
-        // pré-carrega o som de pincelada pra tocar sem atraso a cada clique
         this.brushSound = new Audio(GAME_CONFIG.SOUNDS.BRUSH);
         this.brushSound.preload = 'auto';
 
-        // trava global: enquanto uma célula está sendo escavada, nenhuma outra
-        // pode ser clicada — evita escavar vários blocos ao mesmo tempo
+        this.bgMusic = new Audio(GAME_CONFIG.SOUNDS.MUSIC);
+        this.bgMusic.loop = true;
+        this.bgMusic.volume = 0.15;
+        this.bgMusic.preload = 'auto';
+        this.musicStarted = false;
+
+        this.isMuted = localStorage.getItem('dinoGameMuted') === 'true';
+        this.bgMusic.muted = this.isMuted;
+        this.brushSound.muted = this.isMuted;
+
         this.isDigging = false;
+        this.previewTimer = null;
+
+        this.setupSoundToggle();
     }
 
-    updateUI(level, timeStr, bonesFound, totalBones, brushes, lives) {
-    document.getElementById('level-display').innerText = level;
-    document.getElementById('timer-display').innerText = timeStr;
-    document.getElementById('score-display').innerText = `${bonesFound} / ${totalBones}`;
-    document.getElementById('brush-display').innerText = brushes;
+    setupSoundToggle() {
+        const btn = document.getElementById('sound-toggle-btn');
+        if (!btn) return;
 
-    const livesEl = document.getElementById('lives-display');
-    if (livesEl) {
-        livesEl.innerText = '🤎'.repeat(lives) + '🖤'.repeat(5 - lives);
-    }
-}
+        btn.textContent = this.isMuted ? '🔇' : '🔊';
 
-    playBrushSound() {
-        // volta pro início caso o jogador escave rápido várias células em sequência
-        this.brushSound.currentTime = 0;
-        this.brushSound.play().catch(() => {
-            // navegador pode bloquear autoplay antes da primeira interação; sem problema, ignora
+        btn.addEventListener('click', () => {
+            this.isMuted = !this.isMuted;
+            this.bgMusic.muted = this.isMuted;
+            this.brushSound.muted = this.isMuted;
+            btn.textContent = this.isMuted ? '🔇' : '🔊';
+            localStorage.setItem('dinoGameMuted', this.isMuted);
+
+            if (!this.isMuted) this.tryStartMusic();
         });
     }
 
-    renderGrid(state) {
-    const gridElement = document.getElementById('grid');
-    gridElement.innerHTML = '';
+    // Navegadores só permitem áudio com som depois de um gesto do usuário
+    // (clique/toque) — por isso essa chamada acontece dentro dos handlers
+    // dos botões "GOT IT!" e "I'M READY", que já são gestos do usuário.
+    tryStartMusic() {
+        if (this.musicStarted || this.isMuted) return;
+        this.bgMusic.play()
+            .then(() => { this.musicStarted = true; })
+            .catch(() => {});
+    }
 
-    // sempre que o grid é redesenhado do zero (nova fase, retry etc.),
-    // garante que nenhuma escavação anterior deixou a trava presa em true
-    this.isDigging = false;
+    updateUI(level, timeStr, bonesFound, totalBones, brushes, lives, maxLives) {
+        document.getElementById('level-display').innerText = level;
+        document.getElementById('timer-display').innerText = timeStr;
+        document.getElementById('score-display').innerText = `${bonesFound} / ${totalBones}`;
+        document.getElementById('brush-display').innerText = brushes;
 
-    const { gridCols: cols, gridRows: rows } = state;
+        const livesElement = document.getElementById('lives-display');
+        if (livesElement) {
+            const filledHearts = '🤎'.repeat(lives);
+            const emptyHearts = '🖤'.repeat(Math.max(0, maxLives - lives));
+            livesElement.innerText = filledHearts + emptyHearts;
+        }
+    }
 
-    // Espaço máximo disponível pro tabuleiro (mesmo limite que tínhamos no CSS)
-    const maxSize = Math.min(window.innerHeight * 0.65, window.innerWidth * 0.65, 600);
+    showTutorialModal(onCloseCallback) {
+        if (this.tutorialModal) {
+            this.tutorialModal.classList.remove('hidden');
+            const btn = document.getElementById('tutorial-start-btn');
+            
+            const newBtn = btn.cloneNode(true);
+            btn.parentNode.replaceChild(newBtn, btn);
 
-    // Tamanho de cada célula: cabe tanto na largura quanto na altura disponíveis,
-    // então funciona igual para tabuleiros quadrados (2x2) e retangulares (7x6).
-    const cellSize = Math.floor(Math.min(maxSize / cols, maxSize / rows));
+            newBtn.addEventListener('click', () => {
+                this.tutorialModal.classList.add('hidden');
+                this.tryStartMusic();
+                if (onCloseCallback) onCloseCallback();
+            });
+        } else if (onCloseCallback) {
+            onCloseCallback();
+        }
+    }
 
-    gridElement.style.gridTemplateColumns = `repeat(${cols}, ${cellSize}px)`;
-    gridElement.style.gridTemplateRows = `repeat(${rows}, ${cellSize}px)`;
-    gridElement.style.width = `${cellSize * cols}px`;
-    gridElement.style.height = `${cellSize * rows}px`;
+    showStartModal(dinoImage, previewTimeMs, onCompleteCallback) {
+        if (this.startModal) {
+            if (this.dinoPreviewImg && dinoImage) {
+                this.dinoPreviewImg.src = dinoImage;
+            }
+            if (this.startTitle) {
+                this.startTitle.innerText = "Find this dino!";
+            }
 
-    state.board.forEach((cellValue, index) => {
+            this.startModal.classList.remove('hidden');
+
+            let isCompleted = false;
+
+            const finishPreview = () => {
+                if (isCompleted) return;
+                isCompleted = true;
+
+                if (this.previewTimer) {
+                    clearTimeout(this.previewTimer);
+                    this.previewTimer = null;
+                }
+
+                this.startModal.classList.add('hidden');
+                if (onCompleteCallback) onCompleteCallback();
+            };
+
+            if (this.startReadyBtn) {
+                const newBtn = this.startReadyBtn.cloneNode(true);
+                this.startReadyBtn.parentNode.replaceChild(newBtn, this.startReadyBtn);
+                this.startReadyBtn = newBtn;
+
+                this.startReadyBtn.addEventListener('click', () => {
+                    this.tryStartMusic();
+                    finishPreview();
+                });
+            }
+
+            this.previewTimer = setTimeout(() => {
+                finishPreview();
+            }, previewTimeMs);
+
+        } else if (onCompleteCallback) {
+            onCompleteCallback();
+        }
+    }
+
+    renderGrid(gameState) {
+        const gridElement = document.getElementById('grid');
+        if (!gridElement) return;
+
+        gridElement.style.gridTemplateColumns = `repeat(${gameState.gridCols}, 1fr)`;
+        gridElement.style.gridTemplateRows = `repeat(${gameState.gridRows}, 1fr)`;
+        gridElement.innerHTML = '';
+
+        gameState.board.forEach((cellValue, index) => {
             const cell = document.createElement('div');
             cell.classList.add('cell');
 
-            if (!state.revealed[index]) {
+            if (gameState.revealed[index]) {
+                if (cellValue !== 0) {
+                    cell.classList.add('state-dug-bone');
+                    const boneImg = document.createElement('img');
+                    boneImg.src = cellValue;
+                    boneImg.alt = 'Bone fragment';
+                    cell.appendChild(boneImg);
+                } else {
+                    cell.classList.add('state-dug-empty');
+                }
+            } else {
                 cell.classList.add('state-covered');
-
                 cell.addEventListener('click', () => {
-                    // trava global: se já tem outra célula sendo escavada, ignora o clique
                     if (this.isDigging) return;
-                    // evita clique duplo na mesma célula (redundante com a trava acima, mas seguro)
-                    if (cell.classList.contains('digging')) return;
 
                     this.isDigging = true;
+                    cell.classList.remove('state-covered');
                     cell.classList.add('digging');
-                    this.playBrushSound();
+                    this.brushSound.currentTime = 0;
+                    this.brushSound.play().catch(() => {});
 
-                    // só revela o resultado (e re-renderiza o grid) depois da animação terminar
                     setTimeout(() => {
+                        cell.classList.remove('digging');
                         this.isDigging = false;
                         this.onCellClickCallback(index);
                     }, DIG_ANIMATION_DURATION);
                 });
-            } else {
-                if (cellValue === 1) {
-                    cell.classList.add('state-dug-bone');
-                    const img = document.createElement('img');
-                    img.src = 'assets/images/bone.svg';
-                    cell.appendChild(img);
-                } else {
-                    cell.classList.add('state-dug-empty');
-                }
             }
 
             gridElement.appendChild(cell);
         });
-    }
-
-    // LevelsConfig guarda o dinossauro em snake_case (ex: "t_rex"); aqui a gente
-    // transforma isso num texto de exibição (ex: "T Rex")
-    formatDinosaurName(rawName) {
-        if (!rawName) return 'Dinosaur';
-        return rawName
-            .split('_')
-            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
-            .join(' ');
-    }
-
-    showStartModal(levelConfig, onStartCallback) {
-        const displayName = this.formatDinosaurName(levelConfig.dinosaur);
-        if (this.startTitle) this.startTitle.innerText = `Find the bones of this ${displayName}!`;
-        if (this.dinoPreviewImg) this.dinoPreviewImg.src = `assets/images/skeletons/${levelConfig.dinosaur}_assembled.png`;
-        
-        if (this.startModal) {
-            this.startModal.classList.remove('hidden');
-            const startBtn = document.getElementById('start-game-btn');
-            const newBtn = startBtn.cloneNode(true);
-            startBtn.parentNode.replaceChild(newBtn, startBtn);
-            
-            newBtn.addEventListener('click', () => {
-                this.startModal.classList.add('hidden');
-                if (onStartCallback) onStartCallback();
-            });
-        } else {
-            if (onStartCallback) onStartCallback(); // Fallback caso a modal ainda não esteja no HTML
-        }
     }
 
     showSuccessModal(onNextCallback) {
@@ -146,8 +197,8 @@ export class UIHandler {
                 this.successModal.classList.add('hidden');
                 if (onNextCallback) onNextCallback();
             });
-        } else {
-            if (onNextCallback) onNextCallback();
+        } else if (onNextCallback) {
+            onNextCallback();
         }
     }
 
@@ -162,8 +213,8 @@ export class UIHandler {
                 this.retryModal.classList.add('hidden');
                 if (onRetryCallback) onRetryCallback();
             });
-        } else {
-            if (onRetryCallback) onRetryCallback();
+        } else if (onRetryCallback) {
+            onRetryCallback();
         }
     }
 
@@ -178,12 +229,12 @@ export class UIHandler {
                 this.gameOverModal.classList.add('hidden');
                 if (onRestartCallback) onRestartCallback();
             });
-        } else {
-            if (onRestartCallback) onRestartCallback();
+        } else if (onRestartCallback) {
+            onRestartCallback();
         }
     }
 
-    showMessage(text) {
-        alert(text);
+    showMessage(msg) {
+        alert(msg);
     }
 }

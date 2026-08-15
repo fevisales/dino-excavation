@@ -2,12 +2,11 @@
 export const GAME_CONFIG = {
     ASSETS: {
         BONE: 'assets/images/bone.svg',
-        DUG: 'assets/images/sand_dug.svg',
-        SAND: 'assets/images/sand_cell.svg',
         ROCK: 'assets/images/rock.svg'
     },
     SOUNDS: {
-        BRUSH: 'assets/audio/655624__hankof__brush-2.wav'
+        BRUSH: 'assets/audio/655624__hankof__brush-2.wav',
+        MUSIC: 'assets/audio/Call_to_Adventure.mp3'
     },
     TEXTS: {
         GAME_OVER: "Game Over! Acabaram as pinceladas ou as vidas.",

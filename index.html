@@ -3,45 +3,54 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Escavação Dino: Mistério dos Ossos</title>
+    <title>Escavação Dino!</title>
     <link rel="stylesheet" href="css/style.css">
 </head>
 <body>
     <main id="game-screen">
         <aside id="info-panel">
             <div class="panel-card">
-                <span class="label">FASE</span>
+                <span class="label">LEVEL</span>
                 <span id="level-display" class="value">1</span>
             </div>
             <div class="panel-card">
-                <span class="label">VIDAS</span>
+                <span class="label">LIVES</span>
                 <span id="lives-display" class="value">🤎🤎🤎🤎🤎</span>
             </div>
             <div class="panel-card">
-                <span class="label">TEMPO</span>
-                <span id="timer-display" class="value">00:45</span>
+                <span class="label">TIME</span>
+                <span id="timer-display" class="value">01:00</span>
             </div>
             <div class="panel-card">
-                <span class="label">OSSOS</span>
-                <span id="score-display" class="value">0 / 11</span>
+                <span class="label">BONES</span>
+                <span id="score-display" class="value">0 / 2</span>
             </div>
             <div class="panel-card">
-                <span class="label">PINCELADAS</span>
-                <span id="brush-display" class="value">20</span>
+                <span class="label">BRUSHES</span>
+                <span id="brush-display" class="value">6</span>
+            </div>
+            <div class="panel-card">
+                <span class="label">SOUND</span>
+                <button id="sound-toggle-btn" class="value sound-toggle-btn" aria-label="Ligar ou desligar o som">🔊</button>
             </div>
         </aside>
 
         <section id="sandbox-frame">
             <div id="grid"></div>
 
-            <!-- Os modais ficam dentro do sandbox-frame de propósito: o overlay
-                 escurece só a área do tabuleiro, e o painel de status ao lado
-                 continua sempre visível e legível. -->
+            <div id="tutorial-modal" class="modal hidden">
+                <div class="modal-content">
+                    <h2>HOW TO PLAY</h2>
+                    <p>Find all dinosaur bones before time runs out!</p>
+                    <button id="tutorial-start-btn">GOT IT!</button>
+                </div>
+            </div>
+
             <div id="start-modal" class="modal hidden">
                 <div class="modal-content">
-                    <h2 id="start-title">Find the bones!</h2>
-                    <img id="dino-preview-img" src="../assets/images/t-rex-full-body.svg" alt="Dino Skeleton" style="max-width: 200px;" />
-                    <button id="start-game-btn">START</button>
+                    <h2 id="start-title">Find this dino!</h2>
+                    <img id="dino-preview-img" src="assets/images/t_rex.svg" alt="Dino Skeleton" style="max-width: 200px;" />
+                    <button id="start-ready-btn" style="margin-top: 15px;">I'M READY</button>
                 </div>
             </div>
 

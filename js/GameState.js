@@ -1,5 +1,6 @@
 export class GameState {
     constructor() {
+        this.isFirstLoad = true;
         this.resetGame();
     }
 
@@ -7,7 +8,8 @@ export class GameState {
         this.score = 0;
         this.currentLevelIndex = 0;
         this.lives = 5;
-        this.lastGeneratedBoard = null; // Guarda o tabuleiro da tentativa atual
+        this.maxLives = 5;
+        this.lastGeneratedBoard = null;
         this.resetLevelState();
     }
 
@@ -21,7 +23,6 @@ export class GameState {
         this.revealed = [];
     }
 
-    // Recebe um parâmetro booleano isRetry para saber se reaproveita o mapa
     loadLevelConfig(levelConfig, isRetry = false) {
         this.gridRows = levelConfig.grid.rows;
         this.gridCols = levelConfig.grid.cols;
@@ -32,17 +33,21 @@ export class GameState {
         const totalCells = this.gridRows * this.gridCols;
         this.revealed = new Array(totalCells).fill(false);
 
-        // Se for um Retry e já existir um tabuleiro salvo para esta fase, reutilizamos!
         if (isRetry && this.lastGeneratedBoard && this.lastGeneratedBoard.length === totalCells) {
             this.board = [...this.lastGeneratedBoard];
         } else {
-            // Caso contrário, gera um novo mapa aleatório e guarda como referência para um possível retry
+            // 0 representa areia/vazio
             this.board = new Array(totalCells).fill(0);
+            
+            // Distribuição randômica atribuindo cada osso específico da fase
             let placedBones = 0;
             while (placedBones < this.totalBones) {
                 const randomIndex = Math.floor(Math.random() * totalCells);
                 if (this.board[randomIndex] === 0) {
-                    this.board[randomIndex] = 1; // 1 representa osso
+                    const boneAsset = (levelConfig.boneImages && levelConfig.boneImages[placedBones]) 
+                        ? levelConfig.boneImages[placedBones] 
+                        : 'assets/images/bone.svg';
+                    this.board[randomIndex] = boneAsset;
                     placedBones++;
                 }
             }
@@ -50,7 +55,6 @@ export class GameState {
         }
     }
 
-    // Se avançar de fase com sucesso, limpamos o cache do tabuleiro anterior para gerar novos aleatórios na próxima fase
     nextLevel() {
         this.currentLevelIndex++;
         this.lastGeneratedBoard = null; 
@@ -79,23 +83,20 @@ export class GameState {
         this.revealed[index] = true;
         this.brushCount--;
 
-        const foundBone = this.board[index] === 1;
+        const foundBone = this.board[index] !== 0;
 
         if (foundBone) {
             this.bonesFound++;
         }
 
-        // Vitória: achou o último osso que faltava, independente de sobrar pincelada
         if (this.bonesFound === this.totalBones) {
             return { valid: true, status: 'WIN' };
         }
 
-        // Derrota: acabaram as pinceladas e ainda faltam ossos — seja porque
-        // a última pincelada foi usada num osso (mas não o último) ou num vazio.
-        if (this.brushCount <= 0 && this.bonesFound < this.totalBones) {
+        if (this.brushCount <= 0) {
             return { valid: true, status: 'LOSE' };
         }
 
-        return { valid: true, status: foundBone ? 'HIT' : 'MISS' };
+        return { valid: true, status: 'CONTINUE' };
     }
 }
