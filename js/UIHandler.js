@@ -1,4 +1,9 @@
 // js/UIHandler.js
+import { GAME_CONFIG } from './config.js';
+
+// tempo da animação de escavação em ms — precisa bater com o CSS (.cell.digging)
+const DIG_ANIMATION_DURATION = 2500;
+
 export class UIHandler {
     constructor(onCellClickCallback) {
         this.onCellClickCallback = onCellClickCallback;
@@ -10,6 +15,10 @@ export class UIHandler {
         
         this.dinoPreviewImg = document.getElementById('dino-preview-img');
         this.startTitle = document.getElementById('start-title');
+
+        // pré-carrega o som de pincelada pra tocar sem atraso a cada clique
+        this.brushSound = new Audio(GAME_CONFIG.SOUNDS.BRUSH);
+        this.brushSound.preload = 'auto';
     }
 
     updateUI(level, timeStr, bonesFound, totalBones, brushes, lives) {
@@ -20,9 +29,17 @@ export class UIHandler {
 
     const livesEl = document.getElementById('lives-display');
     if (livesEl) {
-        livesEl.innerText = '🤎'.repeat(lives) + '🖤'.repeat(3 - lives);
+        livesEl.innerText = '🤎'.repeat(lives) + '🖤'.repeat(5 - lives);
     }
 }
+
+    playBrushSound() {
+        // volta pro início caso o jogador escave rápido várias células em sequência
+        this.brushSound.currentTime = 0;
+        this.brushSound.play().catch(() => {
+            // navegador pode bloquear autoplay antes da primeira interação; sem problema, ignora
+        });
+    }
 
     renderGrid(state) {
     const gridElement = document.getElementById('grid');
@@ -48,6 +65,19 @@ export class UIHandler {
 
             if (!state.revealed[index]) {
                 cell.classList.add('state-covered');
+
+                cell.addEventListener('click', () => {
+                    // evita cliques repetidos na mesma célula enquanto ela já está sendo escavada
+                    if (cell.classList.contains('digging')) return;
+
+                    cell.classList.add('digging');
+                    this.playBrushSound();
+
+                    // só revela o resultado (e re-renderiza o grid) depois da animação terminar
+                    setTimeout(() => {
+                        this.onCellClickCallback(index);
+                    }, DIG_ANIMATION_DURATION);
+                });
             } else {
                 if (cellValue === 1) {
                     cell.classList.add('state-dug-bone');
@@ -58,10 +88,6 @@ export class UIHandler {
                     cell.classList.add('state-dug-empty');
                 }
             }
-
-            cell.addEventListener('click', () => {
-                this.onCellClickCallback(index);
-            });
 
             gridElement.appendChild(cell);
         });

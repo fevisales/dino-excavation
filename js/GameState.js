@@ -6,7 +6,7 @@ export class GameState {
     resetGame() {
         this.score = 0;
         this.currentLevelIndex = 0;
-        this.lives = 3;
+        this.lives = 5;
         this.lastGeneratedBoard = null; // Guarda o tabuleiro da tentativa atual
         this.resetLevelState();
     }

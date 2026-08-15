@@ -6,6 +6,9 @@ export const GAME_CONFIG = {
         SAND: 'assets/images/sand_cell.svg',
         ROCK: 'assets/images/rock.svg'
     },
+    SOUNDS: {
+        BRUSH: 'assets/audio/655624__hankof__brush-2.wav'
+    },
     TEXTS: {
         GAME_OVER: "Game Over! Acabaram as pinceladas ou as vidas.",
         WIN: "Level Complete! Você encontrou os ossos do dinossauro!"
