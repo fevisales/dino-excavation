@@ -16,7 +16,7 @@ body {
     background-color: #3b2219;
 
     /* Imagem de fundo ajustada para repetir suavemente em mosaico */
-    background-image: url('/assets/images/test_bg.jpg');
+    background-image: url('../assets/images/sand_bg.svg');
     background-size: 256px 256px;
     background-repeat: repeat;
     background-position: top left;
