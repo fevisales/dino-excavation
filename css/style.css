@@ -43,12 +43,15 @@ body {
     max-height: 100vh;
 }
 
-/* Painel de madeira com os contadores de jogadas e pontos */
+/* Painel de madeira com os contadores de jogadas e pontos.
+   Grade 2 colunas em vez de coluna única: reduz o espaço morto entre
+   os cards e deixa o painel mais quadrado, equilibrando melhor ao lado
+   da moldura de areia (que também é quadrada). */
 #info-panel {
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    gap: clamp(6px, 1.2vh, 14px);
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    align-content: center;
+    gap: clamp(8px, 1.5vh, 16px);
 
     background-image: url('../assets/images/panel_bg.svg');
     background-size: cover; /* preenche sem distorcer a proporção, cortando o mínimo necessário */
@@ -56,10 +59,15 @@ body {
     background-repeat: no-repeat;
     border-radius: 12px;
 
-    width: clamp(160px, 18vw, 240px);
+    width: clamp(220px, 24vw, 300px);
     flex-shrink: 0;
-    padding: clamp(16px, 3vh, 36px) clamp(14px, 1.8vw, 28px);
+    padding: clamp(16px, 3vh, 32px) clamp(14px, 1.8vw, 24px);
     /* altura é natural, baseada no conteúdo (cards + gaps + padding) */
+}
+
+/* FASE em destaque, ocupando as duas colunas no topo do painel */
+#info-panel .panel-card:first-child {
+    grid-column: 1 / -1;
 }
 
 .panel-card {
@@ -87,6 +95,9 @@ body {
 
 /* Moldura de madeira e a grade de areia propriamente dita */
 #sandbox-frame {
+    /* position: relative é o que permite os modais (dentro dele) se ancorarem
+       só nessa área, em vez de cobrirem a tela toda */
+    position: relative;
     background-color: #8c6239;
     background-image: url('../assets/images/sandbox_wood_frame.png');
     background-size: 100% 100%;
@@ -98,9 +109,15 @@ body {
     align-items: center;
     justify-content: center;
 
-    /* a moldura envolve o grid fluidamente, mas nunca ultrapassa o espaço do #game-screen */
+    /* a moldura envolve o grid fluidamente, mas nunca ultrapassa o espaço do #game-screen.
+       min-width/min-height garantem um tamanho mínimo mesmo antes do grid ser desenhado
+       (ex: no primeiro load, quando só o modal de START está visível dentro dela) —
+       sem isso, fit-content colapsa pra 0px porque o modal é position:absolute e não
+       conta no cálculo de tamanho do container */
     width: fit-content;
     height: fit-content;
+    min-width: min(85vw, 340px);
+    min-height: min(85vw, 340px);
     max-width: 100%;
     max-height: 100%;
 }
@@ -298,14 +315,15 @@ body {
     pointer-events: none;
 }
 
-/* Telas popup de início, vitória e derrota */
+/* Telas popup de início, vitória e derrota.
+   position: absolute + inset:0 ancora no #sandbox-frame (que é position: relative),
+   não mais na viewport inteira — assim o overlay escurece só a área do tabuleiro,
+   e o painel de status ao lado fica sempre visível e legível. */
 .modal {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background-color: rgba(0, 0, 0, 0.75);
+    position: absolute;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.6);
+    border-radius: 12px; /* acompanha o arredondado interno da moldura de madeira */
     display: flex;
     align-items: center;
     justify-content: center;
@@ -322,15 +340,20 @@ body {
     background-image: url('/assets/images/wood_panel_texture.png');
     border: 4px solid #3b2219;
     border-radius: 16px;
-    padding: clamp(16px, 4vw, 30px);
+    padding: clamp(12px, 6%, 28px);
     text-align: center;
     color: #f4e3c1;
     box-shadow: 0 12px 24px rgba(0, 0, 0, 0.6);
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: clamp(12px, 2vh, 20px);
-    width: min(90vw, 340px);
+    gap: clamp(8px, 3%, 16px);
+    /* % em vez de vw: o tamanho agora é relativo ao sandbox-frame (o contêiner
+       real do modal), não à tela toda — assim não estoura em tabuleiros pequenos
+       (ex: fase 1, grid 2x2) nem fica minúsculo em tabuleiros grandes */
+    width: min(85%, 300px);
+    max-height: 90%;
+    overflow-y: auto;
 }
 
 .modal-content h2 {
@@ -379,19 +402,15 @@ body {
     }
 
     #info-panel {
-        flex-direction: row;
-        flex-wrap: wrap; /* quebra linha em vez de cortar ou vazar */
-        justify-content: center;
-        align-items: center;
+        /* já é grid 2 colunas por padrão — só precisa ocupar a largura toda
+           e reduzir o respiro, já que agora divide a tela com o tabuleiro embaixo */
         width: 100%;
         max-width: 95vw;
-        padding: 8px;
+        padding: 10px;
         gap: 6px;
     }
 
     .panel-card {
-        flex: 1 1 40%; /* 2 por linha em telas bem estreitas */
-        min-width: 80px;
         padding: 6px 4px;
     }
 

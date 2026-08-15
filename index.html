@@ -33,37 +33,41 @@
 
         <section id="sandbox-frame">
             <div id="grid"></div>
+
+            <!-- Os modais ficam dentro do sandbox-frame de propósito: o overlay
+                 escurece só a área do tabuleiro, e o painel de status ao lado
+                 continua sempre visível e legível. -->
+            <div id="start-modal" class="modal hidden">
+                <div class="modal-content">
+                    <h2 id="start-title">Find the bones!</h2>
+                    <img id="dino-preview-img" src="../assets/images/t-rex-full-body.svg" alt="Dino Skeleton" style="max-width: 200px;" />
+                    <button id="start-game-btn">START</button>
+                </div>
+            </div>
+
+            <div id="success-modal" class="modal hidden">
+                <div class="modal-content">
+                    <h2>SUCCESS!</h2>
+                    <button id="next-level-btn">NEXT LEVEL</button>
+                </div>
+            </div>
+
+            <div id="retry-modal" class="modal hidden">
+                <div class="modal-content">
+                    <h2>OOPS! TRY AGAIN!</h2>
+                    <button id="retry-btn">RETRY</button>
+                </div>
+            </div>
+
+            <div id="game-over-modal" class="modal hidden">
+                <div class="modal-content">
+                    <h2>GAME OVER</h2>
+                    <button id="restart-game-btn">RESTART GAME</button>
+                </div>
+            </div>
         </section>
     </main>
 
     <script type="module" src="js/main.js"></script>
-    <div id="start-modal" class="modal hidden">
-        <div class="modal-content">
-            <h2 id="start-title">Find the bones!</h2>
-            <img id="dino-preview-img" src="" alt="Dino Skeleton" style="max-width: 200px;" />
-            <button id="start-game-btn">START</button>
-        </div>
-    </div>
-
-    <div id="success-modal" class="modal hidden">
-        <div class="modal-content">
-            <h2>SUCCESS!</h2>
-            <button id="next-level-btn">NEXT LEVEL</button>
-        </div>
-    </div>
-
-    <div id="retry-modal" class="modal hidden">
-        <div class="modal-content">
-            <h2>OOPS! TRY AGAIN!</h2>
-            <button id="retry-btn">RETRY</button>
-        </div>
-    </div>
-
-    <div id="game-over-modal" class="modal hidden">
-        <div class="modal-content">
-            <h2>GAME OVER</h2>
-            <button id="restart-game-btn">RESTART GAME</button>
-        </div>
-    </div>
 </body>
 </html>

@@ -19,6 +19,10 @@ export class UIHandler {
         // pré-carrega o som de pincelada pra tocar sem atraso a cada clique
         this.brushSound = new Audio(GAME_CONFIG.SOUNDS.BRUSH);
         this.brushSound.preload = 'auto';
+
+        // trava global: enquanto uma célula está sendo escavada, nenhuma outra
+        // pode ser clicada — evita escavar vários blocos ao mesmo tempo
+        this.isDigging = false;
     }
 
     updateUI(level, timeStr, bonesFound, totalBones, brushes, lives) {
@@ -45,6 +49,10 @@ export class UIHandler {
     const gridElement = document.getElementById('grid');
     gridElement.innerHTML = '';
 
+    // sempre que o grid é redesenhado do zero (nova fase, retry etc.),
+    // garante que nenhuma escavação anterior deixou a trava presa em true
+    this.isDigging = false;
+
     const { gridCols: cols, gridRows: rows } = state;
 
     // Espaço máximo disponível pro tabuleiro (mesmo limite que tínhamos no CSS)
@@ -67,14 +75,18 @@ export class UIHandler {
                 cell.classList.add('state-covered');
 
                 cell.addEventListener('click', () => {
-                    // evita cliques repetidos na mesma célula enquanto ela já está sendo escavada
+                    // trava global: se já tem outra célula sendo escavada, ignora o clique
+                    if (this.isDigging) return;
+                    // evita clique duplo na mesma célula (redundante com a trava acima, mas seguro)
                     if (cell.classList.contains('digging')) return;
 
+                    this.isDigging = true;
                     cell.classList.add('digging');
                     this.playBrushSound();
 
                     // só revela o resultado (e re-renderiza o grid) depois da animação terminar
                     setTimeout(() => {
+                        this.isDigging = false;
                         this.onCellClickCallback(index);
                     }, DIG_ANIMATION_DURATION);
                 });
@@ -93,8 +105,19 @@ export class UIHandler {
         });
     }
 
+    // LevelsConfig guarda o dinossauro em snake_case (ex: "t_rex"); aqui a gente
+    // transforma isso num texto de exibição (ex: "T Rex")
+    formatDinosaurName(rawName) {
+        if (!rawName) return 'Dinosaur';
+        return rawName
+            .split('_')
+            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+            .join(' ');
+    }
+
     showStartModal(levelConfig, onStartCallback) {
-        if (this.startTitle) this.startTitle.innerText = `Find the bones of this ${levelConfig.dinosaurName}!`;
+        const displayName = this.formatDinosaurName(levelConfig.dinosaur);
+        if (this.startTitle) this.startTitle.innerText = `Find the bones of this ${displayName}!`;
         if (this.dinoPreviewImg) this.dinoPreviewImg.src = `assets/images/skeletons/${levelConfig.dinosaur}_assembled.png`;
         
         if (this.startModal) {
