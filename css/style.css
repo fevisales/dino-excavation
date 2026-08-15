@@ -1,10 +1,12 @@
-/* ==========================================
-   1. RESET E FUNDO DE MADEIRA (100% DA TELA)
-   ========================================== */
+/* Configurações básicas e fundo da tela */
 * {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
+}
+html, body {
+    overflow-x: hidden;
+    overflow-y: hidden;
 }
 
 body {
@@ -12,47 +14,55 @@ body {
     height: 100vh;
     overflow: hidden;
     background-color: #3b2219;
-    /* Papel de parede de madeira que preenche tudo */
-    background-image: url('../assets/images/wood_wallpaper.png'); 
-    background-size: cover;
-    background-position: center;
-    background-repeat: no-repeat;
+
+    /* Imagem de fundo ajustada para repetir suavemente em mosaico */
+    background-image: url('../assets/images/test_bg.jpg');
+    background-size: 256px 256px;
+    background-repeat: repeat;
+    background-position: top left;
+
     display: flex;
     align-items: center;
     justify-content: center;
     font-family: 'Arial', sans-serif;
 }
 
-/* ==========================================
-   2. ESTRUTURA E PAINEL LATERAL
-   ========================================== */
+/* Tela principal e painel lateral de informações */
 #game-screen {
     display: flex;
-    flex-direction: row; /* Coloca o painel e o tabuleiro lado a lado */
-    align-items: center;
+    flex-direction: row; /* Mantém o painel de status e o tabuleiro lado a lado */
+    align-items: center;        /* volta pra center — painel não estica mais */
     justify-content: center;
-    gap: 30px;
-    width: 95%;
-    max-width: 1100px;
+    gap: clamp(12px, 2vw, 24px);
+
+    /* Área do jogo ocupa a maior parte da tela, sem nunca estourar viewport */
+    width: min(95vw, 1100px);
+    height: min(90vh, 750px);
+    max-width: 100vw;
+    max-height: 100vh;
 }
 
-/* Painel de Madeira da Esquerda */
+/* Painel de madeira com os contadores de jogadas e pontos */
 #info-panel {
     display: flex;
     flex-direction: column;
-    gap: 12px;
-    background-color: rgba(92, 64, 51, 0.85);
-    background-image: url('../assets/images/wood_panel_texture.png');
-    padding: 20px;
-    border-radius: 12px;
-    border: 4px solid #3b2219;
-    box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
-    min-width: 180px;
-}
+    justify-content: center;
+    gap: clamp(6px, 1.2vh, 14px);
 
+    background-image: url('../assets/images/panel_bg.svg');
+    background-size: cover;      /* preenche sem distorcer proporção, corta o mínimo necessário */
+    background-position: center;
+    background-repeat: no-repeat;
+    border-radius: 12px;
+
+    width: clamp(160px, 18vw, 240px);
+    flex-shrink: 0;
+    padding: clamp(16px, 3vh, 36px) clamp(14px, 1.8vw, 28px);
+    /* altura = natural, baseada no conteúdo (5 cards + gaps + padding) */
+}
 .panel-card {
     background: rgba(0, 0, 0, 0.3);
-    padding: 10px;
+    padding: clamp(8px, 1.2vh, 14px);
     border-radius: 8px;
     text-align: center;
     color: #f4e3c1;
@@ -60,47 +70,60 @@ body {
 
 .panel-card .label {
     display: block;
-    font-size: 11px;
+    font-size: clamp(11px, 1vw, 14px);
     font-weight: bold;
     color: #d4b281;
     margin-bottom: 4px;
 }
 
 .panel-card .value {
-    font-size: 20px;
+    display: block;
+    font-size: clamp(18px, 1.8vw, 26px);
     font-weight: bold;
+    color: #f4e3c1;
 }
 
-/* ==========================================
-   3. MOLDURA DE MADEIRA E GRADE DA AREIA
-   ========================================== */
+/* Moldura de madeira e a grade de areia propriamente dita */
 #sandbox-frame {
     background-color: #8c6239;
     background-image: url('../assets/images/sandbox_wood_frame.png');
     background-size: 100% 100%;
-    padding: 20px; /* Borda da moldura de madeira */
+    padding: clamp(10px, 1.5vw, 20px); /* Borda da moldura de madeira em volta da areia */
     border-radius: 16px;
     box-shadow: 0 12px 24px rgba(0, 0, 0, 0.5);
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    /* Moldura envolve o grid fluidamente, mas nunca ultrapassa o espaço do #game-screen */
+    width: fit-content;
+    height: fit-content;
+    max-width: 100%;
+    max-height: 100%;
 }
 
 #grid {
     display: grid;
-    /* As colunas e linhas agora se adaptam dinamicamente pelo JS via grid-template-columns/rows */
     gap: 0;
-    background-image: url('../assets/images/sand_texture.svg'); /* Areia contínua do fundo */
+    background-image: url('../assets/images/sand_texture.svg');
     background-size: cover;
     box-shadow: inset 0 4px 12px rgba(0, 0, 0, 0.5);
+    /* largura/altura e grid-template-columns/rows são definidos via JS
+       em UIHandler.renderGrid(), com base no espaço realmente disponível
+       na tela — não fixar px aqui para não conflitar com o cálculo. */
 }
 
-/* ==========================================
-   4. ESTILOS DOS 3 ESTADOS DOS BLOCOS (CÉLULAS)
-   ========================================== */
+/* Visual dos blocos de areia e seus estados de escavação */
 .cell {
-    width: 48px;
-    height: 48px;
+    width: 100%;
+    height: 100%;
+    aspect-ratio: 1 / 1;
     display: flex;
     align-items: center;
     justify-content: center;
+    position: relative;
+    overflow: hidden; /* Impede que imagens de células escavadas vazem pra fora do quadrado */
 }
 
 .cell img {
@@ -108,14 +131,14 @@ body {
     height: 100%;
     object-fit: cover;
     display: block;
-    pointer-events: none; /* Impede que o clique na imagem trave o evento de escavação */
+    pointer-events: none; /* Permite clicar através da imagem para escavar a célula */
     border-top: 1px dashed rgba(92, 64, 51, 0.5);
     border-left: 1px dashed rgba(92, 64, 51, 0.5);
     border-right: none;
     border-bottom: none;
 }
 
-/* ESTADO 1: BLOCO INTEIRO (AREIA FECHADA COM TRACEJADO INTERNO) */
+/* Bloco coberto e ainda não escavado */
 .cell.state-covered {
     background-color: transparent;
     border-top: 1px dashed rgba(140, 98, 57, 0.3);
@@ -124,10 +147,10 @@ body {
 }
 
 .cell.state-covered:hover {
-    background-color: rgba(255, 255, 255, 0.15); /* Feedback do cursor */
+    background-color: rgba(255, 255, 255, 0.15);
 }
 
-/* ESTADO 2: BLOCO CAVADO VAZIO (SOMBRA DE BURACO) */
+/* Bloco escavado sem nada (buraco vazio) */
 .cell.state-dug-empty {
     background-color: rgba(60, 35, 20, 0.35);
     box-shadow: inset 0 2px 6px rgba(0, 0, 0, 0.5);
@@ -136,7 +159,7 @@ body {
     cursor: default;
 }
 
-/* ESTADO 3: BLOCO CAVADO COM OSSO */
+/* Bloco escavado que encontrou uma parte do osso */
 .cell.state-dug-bone {
     background-color: rgba(60, 35, 20, 0.25);
     box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.4);
@@ -146,15 +169,15 @@ body {
 }
 
 .cell.state-dug-bone img {
-    width: 85%;
-    height: 85%;
+    width: 100%;
+    height: 100%;
+    max-width: 100%;
+    max-height: 100%;
     object-fit: contain;
     pointer-events: none;
 }
 
-/* ==========================================
-   5. ESTILOS DAS MODAIS (START, SUCCESS, RETRY, GAME OVER)
-   ========================================== */
+/* Telas popup de inicio, vitoria e derrota */
 .modal {
     position: fixed;
     top: 0;
@@ -166,6 +189,7 @@ body {
     align-items: center;
     justify-content: center;
     z-index: 1000;
+    padding: 16px; /* evita colar nas bordas em telas pequenas */
 }
 
 .modal.hidden {
@@ -177,21 +201,26 @@ body {
     background-image: url('../assets/images/wood_panel_texture.png');
     border: 4px solid #3b2219;
     border-radius: 16px;
-    padding: 30px;
+    padding: clamp(16px, 4vw, 30px);
     text-align: center;
     color: #f4e3c1;
     box-shadow: 0 12px 24px rgba(0, 0, 0, 0.6);
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 20px;
-    min-width: 300px;
+    gap: clamp(12px, 2vh, 20px);
+    width: min(90vw, 340px);
 }
 
 .modal-content h2 {
-    font-size: 24px;
+    font-size: clamp(18px, 4vw, 24px);
     color: #ffd700;
     text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.modal-content img {
+    max-width: 100%;
+    height: auto;
 }
 
 .modal-content button {
@@ -199,7 +228,7 @@ body {
     color: #fff;
     border: 2px solid #f4e3c1;
     padding: 12px 24px;
-    font-size: 18px;
+    font-size: clamp(14px, 3vw, 18px);
     font-weight: bold;
     border-radius: 8px;
     cursor: pointer;
@@ -216,24 +245,37 @@ body {
     transform: scale(0.98);
 }
 
-/* ==========================================
-   6. RESPONSIVIDADE PARA CELULARES
-   ========================================== */
+/* Ajustes para telas pequenas de celulares na vertical */
 @media (max-width: 768px) and (orientation: portrait) {
     #game-screen {
         flex-direction: column;
-        gap: 15px;
+        align-items: center;
+        gap: 12px;
+        width: 100vw;
+        height: auto;
+        max-height: 100vh;
+        padding: 8px;
     }
 
     #info-panel {
         flex-direction: row;
+        flex-wrap: wrap;           /* quebra linha em vez de cortar/vazar */
+        justify-content: center;
+        align-items: center;
         width: 100%;
-        justify-content: space-around;
-        padding: 10px;
+        max-width: 95vw;
+        padding: 8px;
+        gap: 6px;
     }
 
-    .cell {
-        width: 32px;
-        height: 32px;
+    .panel-card {
+        flex: 1 1 40%;              /* 2 por linha em telas bem estreitas */
+        min-width: 80px;
+        padding: 6px 4px;
+    }
+
+    #sandbox-frame {
+        max-width: 95vw;
+        max-height: 60vh;
     }
 }

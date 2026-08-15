@@ -12,22 +12,37 @@ export class UIHandler {
         this.startTitle = document.getElementById('start-title');
     }
 
-    updateUI(level, timeStr, bonesFound, totalBones, brushes) {
-        document.getElementById('level-display').innerText = level;
-        document.getElementById('timer-display').innerText = timeStr;
-        document.getElementById('score-display').innerText = `${bonesFound} / ${totalBones}`;
-        document.getElementById('brush-display').innerText = brushes;
+    updateUI(level, timeStr, bonesFound, totalBones, brushes, lives) {
+    document.getElementById('level-display').innerText = level;
+    document.getElementById('timer-display').innerText = timeStr;
+    document.getElementById('score-display').innerText = `${bonesFound} / ${totalBones}`;
+    document.getElementById('brush-display').innerText = brushes;
+
+    const livesEl = document.getElementById('lives-display');
+    if (livesEl) {
+        livesEl.innerText = '❤️'.repeat(lives) + '🖤'.repeat(3 - lives);
     }
+}
 
     renderGrid(state) {
-        const gridElement = document.getElementById('grid');
-        gridElement.innerHTML = '';
+    const gridElement = document.getElementById('grid');
+    gridElement.innerHTML = '';
 
-        // Configura dinamicamente as colunas e linhas no CSS Grid
-        gridElement.style.gridTemplateColumns = `repeat(${state.gridCols}, 48px)`;
-        gridElement.style.gridTemplateRows = `repeat(${state.gridRows}, 48px)`;
+    const { gridCols: cols, gridRows: rows } = state;
 
-        state.board.forEach((cellValue, index) => {
+    // Espaço máximo disponível pro tabuleiro (mesmo limite que tínhamos no CSS)
+    const maxSize = Math.min(window.innerHeight * 0.65, window.innerWidth * 0.65, 600);
+
+    // Tamanho de cada célula: cabe tanto na largura quanto na altura disponíveis,
+    // então funciona igual para tabuleiros quadrados (2x2) e retangulares (7x6).
+    const cellSize = Math.floor(Math.min(maxSize / cols, maxSize / rows));
+
+    gridElement.style.gridTemplateColumns = `repeat(${cols}, ${cellSize}px)`;
+    gridElement.style.gridTemplateRows = `repeat(${rows}, ${cellSize}px)`;
+    gridElement.style.width = `${cellSize * cols}px`;
+    gridElement.style.height = `${cellSize * rows}px`;
+
+    state.board.forEach((cellValue, index) => {
             const cell = document.createElement('div');
             cell.classList.add('cell');
 

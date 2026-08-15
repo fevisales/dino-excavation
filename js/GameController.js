@@ -11,6 +11,24 @@ export class GameController {
         this.currentTimeLeft = 0;
 
         this.initGame();
+        this.bindResize();
+    }
+
+    bindResize() {
+        let resizeTimeout;
+        const onResize = () => {
+            // debounce: evita recalcular a cada pixel durante o arraste da janela
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                // só re-renderiza se já houver um tabuleiro carregado
+                if (this.state.gridCols > 0 && this.state.gridRows > 0) {
+                    this.ui.renderGrid(this.state);
+                }
+            }, 150);
+        };
+
+        window.addEventListener('resize', onResize);
+        window.addEventListener('orientationchange', onResize);
     }
 
     initGame() {
@@ -63,7 +81,8 @@ export class GameController {
             this.formatTime(this.currentTimeLeft),
             this.state.bonesFound,
             this.state.totalBones,
-            this.state.brushCount
+            this.state.brushCount,
+            this.state.lives   // ← novo parâmetro
         );
     }
 

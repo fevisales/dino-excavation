@@ -79,17 +79,23 @@ export class GameState {
         this.revealed[index] = true;
         this.brushCount--;
 
-        if (this.board[index] === 1) {
+        const foundBone = this.board[index] === 1;
+
+        if (foundBone) {
             this.bonesFound++;
-            if (this.bonesFound === this.totalBones) {
-                return { valid: true, status: 'WIN' };
-            }
-            return { valid: true, status: 'HIT' };
-        } else {
-            if (this.brushCount <= 0 && this.bonesFound < this.totalBones) {
-                return { valid: true, status: 'LOSE' };
-            }
-            return { valid: true, status: 'MISS' };
         }
+
+        // Vitória: achou o último osso que faltava, independente de sobrar pincelada
+        if (this.bonesFound === this.totalBones) {
+            return { valid: true, status: 'WIN' };
+        }
+
+        // Derrota: acabaram as pinceladas e ainda faltam ossos — seja porque
+        // a última pincelada foi usada num osso (mas não o último) ou num vazio.
+        if (this.brushCount <= 0 && this.bonesFound < this.totalBones) {
+            return { valid: true, status: 'LOSE' };
+        }
+
+        return { valid: true, status: foundBone ? 'HIT' : 'MISS' };
     }
 }
