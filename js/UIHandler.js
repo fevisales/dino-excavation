@@ -20,7 +20,7 @@ export class UIHandler {
 
     const livesEl = document.getElementById('lives-display');
     if (livesEl) {
-        livesEl.innerText = '❤️'.repeat(lives) + '🖤'.repeat(3 - lives);
+        livesEl.innerText = '🤎'.repeat(lives) + '🖤'.repeat(3 - lives);
     }
 }
 
