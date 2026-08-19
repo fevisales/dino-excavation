@@ -9,7 +9,7 @@ export const GAME_CONFIG = {
         MUSIC: 'assets/audio/Call_to_Adventure.mp3'
     },
     TEXTS: {
-        GAME_OVER: "Game Over! Acabaram as pinceladas ou as vidas.",
-        WIN: "Level Complete! Você encontrou os ossos do dinossauro!"
+        GAME_OVER: "Game Over! No more brushes and lives",
+        WIN: "Level Complete!"
     }
 };
