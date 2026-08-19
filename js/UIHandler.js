@@ -22,7 +22,7 @@ export class UIHandler {
 
         this.bgMusic = new Audio(GAME_CONFIG.SOUNDS.MUSIC);
         this.bgMusic.loop = true;
-        this.bgMusic.volume = 0.05;
+        this.bgMusic.volume = 0.5;
         this.bgMusic.preload = 'auto';
         this.musicStarted = false;
 
